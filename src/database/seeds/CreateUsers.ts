@@ -8,14 +8,18 @@ import '../factories/UserFactory';
 
 export class CreateUsers implements Seed {
 
-    public async seed(factory: Factory, connection: Connection): Promise<any> {
+    public async seed(factory: Factory, connection: Connection): Promise<User[]> {
 
+        const users = [];
         const em = connection.createEntityManager();
         await times(10, async (n) => {
             const user = await factory(User)().seed();
             const task = await factory(Task)({ user }).make();
-            return await em.save(task);
+            const savedTask = await em.save(task);
+            user.tasks = [savedTask];
+            users.push(user);
         });
+        return users;
 
     }
 
