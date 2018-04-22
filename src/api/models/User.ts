@@ -1,6 +1,8 @@
 import { Exclude } from 'class-transformer';
 import { IsNotEmpty } from 'class-validator';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+
+import { Task } from './Task';
 
 @Entity()
 export class User {
@@ -27,6 +29,9 @@ export class User {
     @Exclude()
     @Column()
     public password: string;
+
+    @OneToMany(type => Task, task => task.user)
+    public tasks: Task[];
 
     public toString(): string {
         return `${this.firstName} ${this.lastName} (${this.email})`;
