@@ -3,7 +3,9 @@ import {
 } from 'routing-controllers';
 
 import { UserNotFoundError } from '../errors/UserNotFoundError';
+import { Task } from '../models/Task';
 import { User } from '../models/User';
+import { TaskService } from '../services/TaskService';
 import { UserService } from '../services/UserService';
 
 @Authorized()
@@ -11,12 +13,18 @@ import { UserService } from '../services/UserService';
 export class UserController {
 
     constructor(
-        private userService: UserService
+        private userService: UserService,
+        private taskService: TaskService
     ) { }
 
     @Get()
     public find( @CurrentUser() user?: User): Promise<User[]> {
         return this.userService.find();
+    }
+
+    @Get('/me/tasks')
+    public findMyTasks( @CurrentUser() user?: User): Promise<Task[]> {
+        return this.taskService.findByUserId(user.id);
     }
 
     @Get('/:id')
