@@ -1,12 +1,20 @@
 import { Connection } from 'typeorm/connection/Connection';
 
 import { User } from '../../../src/api/models/User';
-import { Factory, Seed } from '../../lib/seed/types';
+import { Task } from '../../api/models/Task';
+import { Factory, Seed, times } from '../../lib/seed';
 
 export class CreateUsers implements Seed {
 
     public async seed(factory: Factory, connection: Connection): Promise<any> {
-        await factory(User)().seedMany(10);
+
+        const em = connection.createEntityManager();
+        await times(10, async (n) => {
+            const user = await factory(User)().seed();
+            const task = await factory(Task)({ user }).make();
+            return await em.save(task);
+        });
+
     }
 
 }
