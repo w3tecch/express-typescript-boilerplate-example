@@ -17,7 +17,7 @@ export class CreateBruce implements Seed {
         bruce.email = 'bruce.wayne@wayne-enterprises.com';
         bruce.password = 'alfred';
         const user = await em.save(bruce);
-        await factory(Task)({ user }).seedMany(4);
+        user.tasks = await factory(Task)({ user }).seedMany(4);
         return user;
     }
 
