@@ -19,7 +19,6 @@ export class CreateTaskTable1524308957165 implements MigrationInterface {
             }, {
                 name: 'is_completed',
                 type: 'boolean',
-                default: false,
                 isPrimary: false,
                 isNullable: false,
             }, {
