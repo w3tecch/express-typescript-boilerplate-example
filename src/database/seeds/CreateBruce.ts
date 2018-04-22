@@ -3,6 +3,8 @@ import { Connection } from 'typeorm';
 import { Task } from '../../../src/api/models/Task';
 import { User } from '../../../src/api/models/User';
 import { Factory, Seed } from '../../lib/seed/types';
+import '../factories/TaskFactory';
+import '../factories/UserFactory';
 
 export class CreateBruce implements Seed {
 
@@ -17,7 +19,6 @@ export class CreateBruce implements Seed {
         const user = await em.save(bruce);
         await factory(Task)({ user }).seedMany(4);
         return user;
-
     }
 
 }
