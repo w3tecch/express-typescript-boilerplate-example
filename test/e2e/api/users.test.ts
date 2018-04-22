@@ -65,4 +65,16 @@ describe('/api/users', () => {
         done();
     });
 
+    test('GET: /me/tasks should return all tasks of bruce', async (done) => {
+        const response = await request(settings.app)
+            .get(`/api/users/me/tasks`)
+            .set('Authorization', `Basic ${bruce.toBase64()}`)
+            .expect('Content-Type', /json/)
+            .expect(200);
+
+        expect(response.body.length).toBe(bruce.tasks.length);
+        expect(response.body[0].id).toBe(bruce.tasks[0].id);
+        done();
+    });
+
 });
