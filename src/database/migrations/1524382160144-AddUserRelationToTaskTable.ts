@@ -3,11 +3,11 @@ import { MigrationInterface, QueryRunner, TableForeignKey } from 'typeorm';
 export class AddUserRelationToTaskTable1524382160144 implements MigrationInterface {
 
     private tableForeignKey = new TableForeignKey(
-        'fk_user_task',
-        ['user_id'],
-        ['id'],
-        'task',
-        ''
+        'fk_user_task', // name
+        ['user_id'], // columnNames
+        ['id'], // referencedColumnNames
+        'user', // referencedTable,
+        '' // referencedTablePath
     );
 
     public async up(queryRunner: QueryRunner): Promise<any> {

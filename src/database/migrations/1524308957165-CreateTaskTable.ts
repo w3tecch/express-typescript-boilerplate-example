@@ -27,7 +27,7 @@ export class CreateTaskTable1524308957165 implements MigrationInterface {
                 type: 'varchar',
                 length: 255,
                 isPrimary: false,
-                isNullable: true,
+                isNullable: false,
             },
         ]);
         await queryRunner.createTable(table);
