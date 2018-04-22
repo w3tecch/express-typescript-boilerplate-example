@@ -3,6 +3,8 @@ import { Connection } from 'typeorm/connection/Connection';
 import { User } from '../../../src/api/models/User';
 import { Task } from '../../api/models/Task';
 import { Factory, Seed, times } from '../../lib/seed';
+import '../factories/TaskFactory';
+import '../factories/UserFactory';
 
 export class CreateUsers implements Seed {
 
