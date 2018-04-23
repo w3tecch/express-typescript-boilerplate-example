@@ -459,5 +459,63 @@ export class NotAllowedError extends HttpError {
         super(403, 'You do not have the permission to do that!');
     }
 }
+```
 
+## 005 - Create tasks
+
+> Add test to the `tasks.test.ts` file
+
+```TypeScript
+    test('POST: / should create a new task for bruce', async (done) => {
+        const newTaskTitle = 'newTaskTitle';
+        const newTask = {
+            title: newTaskTitle,
+        };
+        const response = await request(settings.app)
+            .post(`/api/tasks`)
+            .send(newTask)
+            .set('Authorization', `Basic ${bruce.toBase64()}`)
+            .expect('Content-Type', /json/)
+            .expect(200);
+
+        expect(response.body.id).toBeDefined();
+        expect(response.body.title).toBe(newTaskTitle);
+        expect(response.body.isCompleted).toBeFalsy();
+        done();
+    });
+```
+
+> Create a new request class `NewTask`
+
+```TypeScript
+import { IsNotEmpty } from 'class-validator';
+
+export class NewTask {
+
+    @IsNotEmpty()
+    public title: string;
+
+}
+```
+
+> Add new endpoint to the controller
+
+```TypeScript
+    @Post()
+    public create( @Body() newTask: NewTask, @CurrentUser() user?: User): Promise<Task> {
+        return this.taskService.create(newTask, user);
+    }
+```
+
+> Add new action to the service
+
+```TypeScript
+    public async create(newTask: NewTask, currentUser: User): Promise<Task> {
+        this.log.info('Create a new task for the current user');
+        const task = new Task();
+        task.title = newTask.title;
+        task.userId = currentUser.id;
+        task.isCompleted = false;
+        return await this.taskRepository.save(task);
+    }
 ```

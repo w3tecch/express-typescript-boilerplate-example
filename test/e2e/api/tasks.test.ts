@@ -38,6 +38,24 @@ describe('/api/tasks', () => {
     // Test cases
     // -------------------------------------------------------------------------
 
+    test('POST: / should create a new task for bruce', async (done) => {
+        const newTaskTitle = 'newTaskTitle';
+        const newTask = {
+            title: newTaskTitle,
+        };
+        const response = await request(settings.app)
+            .post(`/api/tasks`)
+            .send(newTask)
+            .set('Authorization', `Basic ${bruce.toBase64()}`)
+            .expect('Content-Type', /json/)
+            .expect(200);
+
+        expect(response.body.id).toBeDefined();
+        expect(response.body.title).toBe(newTaskTitle);
+        expect(response.body.isCompleted).toBeFalsy();
+        done();
+    });
+
     test('PUT: / should update the task', async (done) => {
         const newTaskTitle = 'newTaskTitle';
         const newTask = Object.assign({}, bruce.tasks[0], {

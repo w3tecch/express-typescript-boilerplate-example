@@ -2,6 +2,7 @@ import { Service } from 'typedi';
 import { OrmRepository } from 'typeorm-typedi-extensions';
 
 import { Logger, LoggerInterface } from '../../decorators/Logger';
+import { NewTask } from '../controllers/requests/NewTask';
 import { NotAllowedError } from '../errors/NotAllowedError';
 import { Task } from '../models/Task';
 import { User } from '../models/User';
@@ -20,6 +21,15 @@ export class TaskService {
         return this.taskRepository.find({
             where: { userId },
         });
+    }
+
+    public async create(newTask: NewTask, currentUser: User): Promise<Task> {
+        this.log.info('Create a new task for the current user');
+        const task = new Task();
+        task.title = newTask.title;
+        task.userId = currentUser.id;
+        task.isCompleted = false;
+        return await this.taskRepository.save(task);
     }
 
     public async update(taskId: string, task: Task, currentUser: User): Promise<Task> {
