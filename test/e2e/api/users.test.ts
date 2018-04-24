@@ -58,8 +58,6 @@ describe('/api/users', () => {
             .expect(200);
 
         expect(response.body.id).toBe(bruce.id);
-        expect(response.body.firstName).toBe(bruce.firstName);
-        expect(response.body.lastName).toBe(bruce.lastName);
         expect(response.body.username).toBe(bruce.username);
         expect(response.body.email).toBe(bruce.email);
         done();
