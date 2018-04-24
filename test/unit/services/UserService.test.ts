@@ -13,13 +13,11 @@ describe('UserService', () => {
         const ed = new EventDispatcherMock();
         const user = new User();
         user.id = '1';
-        user.firstName = 'John';
-        user.lastName = 'Doe';
         user.email = 'john.doe@test.com';
         repo.list = [user];
         const userService = new UserService(repo as any, ed as any, log);
         const list = await userService.find();
-        expect(list[0].firstName).toBe(user.firstName);
+        expect(list[0].email).toBe(user.email);
         done();
     });
 
@@ -29,8 +27,6 @@ describe('UserService', () => {
         const ed = new EventDispatcherMock();
         const user = new User();
         user.id = '1';
-        user.firstName = 'John';
-        user.lastName = 'Doe';
         user.email = 'john.doe@test.com';
         const userService = new UserService(repo as any, ed as any, log);
         const newUser = await userService.create(user);
