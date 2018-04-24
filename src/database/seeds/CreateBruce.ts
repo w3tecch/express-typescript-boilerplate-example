@@ -11,11 +11,9 @@ export class CreateBruce implements Seed {
     public async seed(factory: Factory, connection: Connection): Promise<User> {
         const em = connection.createEntityManager();
         const bruce = new User();
-        bruce.firstName = 'Bruce';
-        bruce.lastName = 'Wayne';
-        bruce.username = 'batman';
+        bruce.username = 'bruce';
         bruce.email = 'bruce.wayne@wayne-enterprises.com';
-        bruce.password = 'alfred';
+        bruce.password = 'joker';
         const user = await em.save(bruce);
         user.tasks = await factory(Task)({ user }).seedMany(4);
         return user;

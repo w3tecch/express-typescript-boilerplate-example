@@ -12,8 +12,6 @@ define(User, (faker: typeof Faker, settings: { role: string }) => {
     const password = faker.lorem.word();
 
     const user = new User();
-    user.firstName = firstName;
-    user.lastName = lastName;
     user.email = email;
     user.username = username;
     user.password = password;

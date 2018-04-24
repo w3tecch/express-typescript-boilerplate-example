@@ -11,14 +11,6 @@ export class User {
     public id: string;
 
     @IsNotEmpty()
-    @Column({ name: 'first_name' })
-    public firstName: string;
-
-    @IsNotEmpty()
-    @Column({ name: 'last_name' })
-    public lastName: string;
-
-    @IsNotEmpty()
     @Column()
     public username: string;
 
@@ -34,7 +26,7 @@ export class User {
     public tasks: Task[];
 
     public toString(): string {
-        return `${this.firstName} ${this.lastName} (${this.email})`;
+        return `${this.username} (${this.email})`;
     }
 
     public toBase64(): string {
