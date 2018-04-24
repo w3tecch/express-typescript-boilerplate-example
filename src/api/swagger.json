@@ -33,6 +33,9 @@
         },
         {
             "name": "Task"
+        },
+        {
+            "name": "To Implement"
         }
     ],
     "paths": {
@@ -68,20 +71,9 @@
                     "200": {
                         "description": "ok",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean"
-                                },
-                                "message": {
-                                    "type": "string"
-                                },
-                                "data": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/definitions/User"
-                                    }
-                                }
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/User"
                             }
                         }
                     }
@@ -114,18 +106,7 @@
                     "201": {
                         "description": "created",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean"
-                                },
-                                "message": {
-                                    "type": "string"
-                                },
-                                "data": {
-                                    "$ref": "#/definitions/User"
-                                }
-                            }
+                            "$ref": "#/definitions/User"
                         }
                     }
                 }
@@ -158,18 +139,7 @@
                     "200": {
                         "description": "ok",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean"
-                                },
-                                "message": {
-                                    "type": "string"
-                                },
-                                "data": {
-                                    "$ref": "#/definitions/User"
-                                }
-                            }
+                            "$ref": "#/definitions/User"
                         }
                     }
                 }
@@ -209,18 +179,7 @@
                     "200": {
                         "description": "ok",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean"
-                                },
-                                "message": {
-                                    "type": "string"
-                                },
-                                "data": {
-                                    "$ref": "#/definitions/User"
-                                }
-                            }
+                            "$ref": "#/definitions/User"
                         }
                     }
                 }
@@ -249,26 +208,39 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean"
-                                },
-                                "message": {
-                                    "type": "string"
-                                }
-                            }
-                        }
+                        "description": "ok"
                     }
                 }
             }
         },
         "/users/me/tasks": {
+            "get": {
+                "tags": [
+                    "User", "To Implement"
+                ],
+                "summary": "Get all tasks of the current user",
+                "description": "",
+                "operationId": "GetUserTask",
+                "security": [
+                    {
+                        "basicAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "created",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Task"
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
                 "tags": [
-                    "User"
+                    "User", "To Implement"
                 ],
                 "summary": "Create new task for the current user",
                 "description": "",
@@ -293,18 +265,7 @@
                     "201": {
                         "description": "created",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean"
-                                },
-                                "message": {
-                                    "type": "string"
-                                },
-                                "data": {
-                                    "$ref": "#/definitions/User"
-                                }
-                            }
+                            "$ref": "#/definitions/Task"
                         }
                     }
                 }
@@ -313,7 +274,7 @@
         "/tasks/{id}": {
             "put": {
                 "tags": [
-                    "Task"
+                    "Task", "To Implement"
                 ],
                 "summary": "Update task",
                 "description": "Updates the given task",
@@ -346,57 +307,7 @@
                     "200": {
                         "description": "ok",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean"
-                                },
-                                "message": {
-                                    "type": "string"
-                                },
-                                "data": {
-                                    "$ref": "#/definitions/Task"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "tags": [
-                    "Task"
-                ],
-                "summary": "Delete task",
-                "description": "Removes the given task",
-                "operationId": "DeleteTask",
-                "security": [
-                    {
-                        "basicAuth": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "ID of task to delete",
-                        "required": true,
-                        "type": "integer",
-                        "format": "int64"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "success": {
-                                    "type": "boolean"
-                                },
-                                "message": {
-                                    "type": "string"
-                                }
-                            }
+                            "$ref": "#/definitions/Task"
                         }
                     }
                 }
