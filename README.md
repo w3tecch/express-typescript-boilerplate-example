@@ -14,22 +14,16 @@
 
 ![divider](./w3tec-divider.png)
 
-
-![divider](./w3tec-divider.png)
-
 ## ❯ Table of Contents
 
 - [Getting Started](#-getting-started)
-- [Scripts and Tasks](#-scripts-and-tasks)
-- [Debugger in VSCode](#-debugger-in-vscode)
-- [API Routes](#-api-routes)
-- [Project Structure](#-project-structure)
-- [Logging](#-logging)
-- [Event Dispatching](#-event-dispatching)
-- [Seeding](#-seeding)
-- [Further Documentations](#-further-documentation)
-- [Related Projects](#-related-projects)
-- [License](#-license)
+- [Requirements](#-requirements)
+- [001 - Create task table in the database](#-debugger-in-vscode)
+- [002 - Create seeds for the new entity task](#-debugger-in-vscode)
+- [003 - GET tasks of the current user](#-debugger-in-vscode)
+- [004 - Update tasks of current user](#-debugger-in-vscode)
+- [005 - Create tasks](#-debugger-in-vscode)
+- [006 - Auth0 integration](#-debugger-in-vscode)
 
 ![divider](./w3tec-divider.png)
 
@@ -85,12 +79,13 @@ npm start serve
 
 ## ❯ Requirements
 
-- Run the server `yarn start serve` and open the swagger documention link
+- Run the server `yarn start serve` and open the swagger documentation link
 - We going to implement these 3 routes:
-	- GET `/users/me/tasks`
-	- PUT `/tasks/:taskId`
-	- POST `/users/me/tasks`
+  - GET `/users/me/tasks`
+  - PUT `/tasks/:taskId`
+  - POST `/users/me/tasks`
 
+![divider](./w3tec-divider.png)
 
 ## ❯ 001 - Create task table in the database
 
@@ -166,6 +161,8 @@ export class AddUserRelationToTaskTable1524382160144 implements MigrationInterfa
 ```
 
 Run migration `yarn start db.migrate` to update the database schema.
+
+![divider](./w3tec-divider.png)
 
 ## ❯ 002 - Create seeds for the new entity task
 
@@ -291,6 +288,7 @@ export class CreateUsers implements Seed {
 
 }
 ```
+
 **or this if the other did not work**
 
 ```TypeScript
@@ -318,8 +316,9 @@ export class CreateUsers implements Seed {
 
 Run `yarn start db.seed`.
 
+Verify the seeded data in the database.
 
-Verify the seeded data in the database,
+![divider](./w3tec-divider.png)
 
 ## ❯ 003 - GET tasks of the current user
 
@@ -389,6 +388,8 @@ Add a new endpoint to the `UserController`.
     }
 ```
 
+![divider](./w3tec-divider.png)
+
 ## ❯ 004 - Update tasks of current user
 
 Create `tasks.test.ts`.
@@ -434,7 +435,7 @@ describe('/api/tasks', () => {
     // Test cases
     // -------------------------------------------------------------------------
 
-	// TODO: Add tests here
+    // TODO: Add tests here
 
 });
 ```
@@ -527,6 +528,8 @@ export class NotAllowedError extends HttpError {
 }
 ```
 
+![divider](./w3tec-divider.png)
+
 ## ❯ 005 - Create tasks
 
 Add test to the `tasks.test.ts` file
@@ -585,6 +588,8 @@ Add new endpoint to the `TaskController`
         return this.taskService.create(newTask, user);
     }
 ```
+
+![divider](./w3tec-divider.png)
 
 ## ❯ 006 - Auth0 integration
 
@@ -702,7 +707,6 @@ Run `typeorm migration:create -n RemovePasswordFromUserTable` to create a new mi
 
 Adjust the seed `CreateBruce`.
 
-
 ```TypeScript
 +        bruce.auth0 = 'auth0|bruce';
 -        bruce.password = 'joker';
@@ -718,7 +722,6 @@ Adjust all test with.
 Remove the `AuthService`.
 
 Change the `authorizationChecker`
-
 
 ```TypeScript
 import * as express from 'express';
@@ -806,3 +809,17 @@ export function currentUserChecker(connection: Connection): (action: Action) => 
     };
 }
 ```
+
+![divider](./w3tec-divider.png)
+
+## ❯ Related Projects
+
+- [express-typescript-boilerplate](https://github.com/w3tecch/express-typescript-boilerplate) - A delightful way to building a RESTful API with NodeJs & TypeScript by @w3tecch.
+- [aurelia-typescript-boilerplate](https://github.com/w3tecch/aurelia-typescript-boilerplate) - An Aurelia starter kit with TypeScript
+- [Auth0 Mock Server](https://github.com/hirsch88/auth0-mock-server) - Useful for e2e testing or faking an oAuth server
+
+![divider](./w3tec-divider.png)
+
+## ❯ License
+
+[MIT](/LICENSE)
