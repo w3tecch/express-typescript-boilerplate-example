@@ -210,50 +210,10 @@ export class Task {
 Add tasks to the `User` entity,
 
 ```TypeScript
-import { Exclude } from 'class-transformer';
-import { IsNotEmpty } from 'class-validator';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-
-import { Task } from './Task';
-
-@Entity()
-export class User {
-
-    @PrimaryGeneratedColumn('uuid')
-    public id: string;
-
-    @IsNotEmpty()
-    @Column({ name: 'first_name' })
-    public firstName: string;
-
-    @IsNotEmpty()
-    @Column({ name: 'last_name' })
-    public lastName: string;
-
-    @IsNotEmpty()
-    @Column()
-    public username: string;
-
-    @IsNotEmpty()
-    @Column()
-    public email: string;
-
-    @Exclude()
-    @Column()
-    public password: string;
 
     @OneToMany(type => Task, task => task.user)
     public tasks: Task[];
 
-    public toString(): string {
-        return `${this.firstName} ${this.lastName} (${this.email})`;
-    }
-
-    public toBase64(): string {
-        return Buffer.from(`${this.username}:${this.password}`).toString('base64');
-    }
-
-}
 ```
 
 Create a new `TaskFactory`.
@@ -275,7 +235,6 @@ define(Task, (faker: typeof Faker, settings: { user: User }) => {
     task.userId = settings.user.id;
     return task;
 });
-
 ```
 
 Update the seeds `CreateBruce.ts`.
@@ -294,11 +253,9 @@ export class CreateBruce implements Seed {
     public async seed(factory: Factory, connection: Connection): Promise<User> {
         const em = connection.createEntityManager();
         const bruce = new User();
-        bruce.firstName = 'Bruce';
-        bruce.lastName = 'Wayne';
-        bruce.username = 'batman';
+        bruce.username = 'bruce';
         bruce.email = 'bruce.wayne@wayne-enterprises.com';
-        bruce.password = 'alfred';
+        bruce.password = 'joker';
         const user = await em.save(bruce);
         user.tasks = await factory(Task)({ user }).seedMany(4);
         return user;
@@ -321,18 +278,39 @@ import '../factories/UserFactory';
 export class CreateUsers implements Seed {
 
     public async seed(factory: Factory, connection: Connection): Promise<User[]> {
+        const em = connection.createEntityManager();
+        const users: User[] = [];
+        await times(10, async (n) => {
+            const user = await factory(User)().seed();
+            const task = await factory(Task)({ user }).make();
+            user.tasks = [await em.save(task)];
+            users.push(user);
+        });
+        return users;
+    }
 
-        const users = [];
+}
+```
+**or this if the other did not work**
+
+```TypeScript
+import { Connection } from 'typeorm/connection/Connection';
+
+import { User } from '../../../src/api/models/User';
+import { Task } from '../../api/models/Task';
+import { Factory, Seed, times } from '../../lib/seed';
+import '../factories/TaskFactory';
+import '../factories/UserFactory';
+
+export class CreateUsers implements Seed {
+
+    public async seed(factory: Factory, connection: Connection): Promise<any> {
         const em = connection.createEntityManager();
         await times(10, async (n) => {
             const user = await factory(User)().seed();
             const task = await factory(Task)({ user }).make();
-            const savedTask = await em.save(task);
-            user.tasks = [savedTask];
-            users.push(user);
+            return await em.save(task);
         });
-        return users;
-
     }
 
 }
@@ -456,6 +434,12 @@ describe('/api/tasks', () => {
     // Test cases
     // -------------------------------------------------------------------------
 
+	// TODO: Add tests here
+
+});
+```
+
+```TypeScript
     test('PUT: / should update the task', async (done) => {
         const newTaskTitle = 'newTaskTitle';
         const newTask = Object.assign({}, bruce.tasks[0], {
@@ -488,8 +472,6 @@ describe('/api/tasks', () => {
 
         done();
     });
-
-});
 ```
 
 Add `update` method to the `TaskService`.
@@ -582,16 +564,7 @@ export class NewTask {
 }
 ```
 
-Add new endpoint to the controller
-
-```TypeScript
-    @Post()
-    public create( @Body() newTask: NewTask, @CurrentUser() user?: User): Promise<Task> {
-        return this.taskService.create(newTask, user);
-    }
-```
-
-Add new action to the service
+Add new action to the `TaskService`
 
 ```TypeScript
     public async create(newTask: NewTask, currentUser: User): Promise<Task> {
@@ -602,4 +575,234 @@ Add new action to the service
         task.isCompleted = false;
         return await this.taskRepository.save(task);
     }
+```
+
+Add new endpoint to the `TaskController`
+
+```TypeScript
+    @Post()
+    public create( @Body() newTask: NewTask, @CurrentUser() user?: User): Promise<Task> {
+        return this.taskService.create(newTask, user);
+    }
+```
+
+## ❯ 006 - Auth0 integration
+
+Install the auth0 dependencies `yarn add express-jwt @types/express-jwt jwks-rsa`
+
+Change the `User` entity. Remove password and add auth0 prop.
+
+```TypeScript
+import { Exclude } from 'class-transformer';
+import { IsNotEmpty } from 'class-validator';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+
+import { Task } from './Task';
+
+@Entity()
+export class User {
+
+    @PrimaryGeneratedColumn('uuid')
+    public id: string;
+
+    @IsNotEmpty()
+    @Column()
+    public username: string;
+
+    @IsNotEmpty()
+    @Column()
+    public email: string;
+
+    @Exclude()
+    @Column()
+    public auth0: string;
+
+    @OneToMany(type => Task, task => task.user)
+    public tasks: Task[];
+
+    public toString(): string {
+        return `${this.username} (${this.email})`;
+    }
+
+}
+```
+
+Add finder method `findByAuth0` to the `UserRepository`
+
+```TypeScript
+    public async findByAuth0(auth0: string): Promise<User> {
+        return this.findOne({
+            where: { auth0 },
+        });
+    }
+```
+
+Adjust the `UserFactory`
+
+```TypeScript
+import * as Faker from 'faker';
+
+import { User } from '../../../src/api/models/User';
+import { define } from '../../lib/seed';
+
+define(User, (faker: typeof Faker, settings: { role: string }) => {
+    const gender = faker.random.number(1);
+    const firstName = faker.name.firstName(gender);
+    const lastName = faker.name.lastName(gender);
+    const username = faker.internet.userName(firstName, lastName);
+    const email = faker.internet.email(firstName, lastName);
+
+    const user = new User();
+    user.email = email;
+    user.username = username;
+    user.auth0 = `auht0|${username}`;
+    return user;
+});
+```
+
+Run `typeorm migration:create -n AddAuth0ToTheUserTable` to create a new migration.
+
+```TypeScript
+    public async up(queryRunner: QueryRunner): Promise<any> {
+        const table = await queryRunner.getTable('user');
+        const column = new TableColumn({
+            name: 'auth0',
+            type: 'varchar',
+            length: '255',
+        });
+        await queryRunner.addColumn(table, column);
+    }
+
+    public async down(queryRunner: QueryRunner): Promise<any> {
+        const table = await queryRunner.getTable('user');
+        await queryRunner.dropColumn(table, { name: 'auth0' } as TableColumn);
+    }
+```
+
+Run `typeorm migration:create -n RemovePasswordFromUserTable` to create a new migration.
+
+```TypeScript
+    public async up(queryRunner: QueryRunner): Promise<any> {
+        const table = await queryRunner.getTable('user');
+        await queryRunner.dropColumn(table, { name: 'password' } as TableColumn);
+    }
+
+    public async down(queryRunner: QueryRunner): Promise<any> {
+        const table = await queryRunner.getTable('user');
+        const column = new TableColumn({
+            name: 'password',
+            type: 'varchar',
+            length: '255',
+            isPrimary: false,
+            isNullable: false,
+        });
+        await queryRunner.addColumn(table, column);
+    }
+```
+
+Adjust the seed `CreateBruce`.
+
+
+```TypeScript
++        bruce.auth0 = 'auth0|bruce';
+-        bruce.password = 'joker';
+```
+
+Adjust all test with.
+
+```TypeScript
++            .set('Authorization', `Bearer ${bruce.auth0}`)
+.            .set('Authorization', `Basic ${bruce.toBase64()}`)
+```
+
+Remove the `AuthService`.
+
+Change the `authorizationChecker`
+
+
+```TypeScript
+import * as express from 'express';
+import * as jwt from 'express-jwt';
+import * as jwksRsa from 'jwks-rsa';
+import { Action } from 'routing-controllers';
+import { Connection } from 'typeorm';
+
+import { User } from '../api/models/User';
+import { env } from '../env';
+import { Logger } from '../lib/logger';
+
+export function authorizationChecker(connection: Connection): (action: Action, roles: any[]) => Promise<boolean> | boolean {
+    const log = new Logger(__filename);
+
+    const checkJwt = jwt({
+        secret: jwksRsa.expressJwtSecret({
+            cache: true,
+            rateLimit: true,
+            jwksRequestsPerMinute: 5,
+            jwksUri: 'https://qta.eu.auth0.com/.well-known/jwks.json',
+        }),
+        issuer: 'https://qta.eu.auth0.com/',
+        algorithms: ['RS256'],
+    });
+
+    return async function innerAuthorizationChecker(action: Action, roles: string[]): Promise<boolean> {
+
+        if (env.isTest) {
+            const getToken = (req: express.Request): string | undefined => {
+                const authorization = req.header('authorization');
+                if (authorization && authorization.split(' ')[0] === 'Bearer') {
+                    return authorization.split(' ')[1];
+                }
+                return undefined;
+            };
+
+            const token = getToken(action.request);
+            action.request.user = new User();
+            action.request.user.sub = token;
+            return true;
+        }
+
+        const check = () => {
+            return new Promise<Error | undefined>((resolve, reject) => {
+                checkJwt(action.request, action.response, resolve);
+            });
+        };
+
+        const error = await check();
+        if (error && error.message) {
+            log.warn(error.message);
+        }
+        return !error;
+
+    };
+}
+```
+
+Change the `currentUserChecker`
+
+```TypeScript
+import { Action } from 'routing-controllers';
+import { Connection } from 'typeorm';
+
+import { User } from '../api/models/User';
+import { UserRepository } from '../api/repositories/UserRepository';
+
+export function currentUserChecker(connection: Connection): (action: Action) => Promise<User | undefined> {
+
+    return async function innerCurrentUserChecker(action: Action): Promise<User | undefined> {
+
+        const userRepository = connection.getCustomRepository<UserRepository>(UserRepository);
+        let user = await userRepository.findByAuth0(action.request.user.sub);
+        if (!user) {
+            const newUser = new User();
+            newUser.username = action.request.user.nickname;
+            newUser.email = action.request.user.email;
+            newUser.auth0 = action.request.user.sub;
+            user = await userRepository.save(newUser);
+        }
+
+        return user;
+
+    };
+}
 ```
