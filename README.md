@@ -719,63 +719,95 @@ Adjust all test with.
 .            .set('Authorization', `Basic ${bruce.toBase64()}`)
 ```
 
-Remove the `AuthService`.
-
-Change the `authorizationChecker`
+Add new methods to the `AuthService`.
 
 ```TypeScript
 import * as express from 'express';
 import * as jwt from 'express-jwt';
 import * as jwksRsa from 'jwks-rsa';
-import { Action } from 'routing-controllers';
-import { Connection } from 'typeorm';
+import { Service } from 'typedi';
+import { OrmRepository } from 'typeorm-typedi-extensions';
 
 import { User } from '../api/models/User';
+import { UserRepository } from '../api/repositories/UserRepository';
+import { Logger, LoggerInterface } from '../decorators/Logger';
+import { env } from '../env';
+
+@Service()
+export class AuthService {
+
+    private jwtRequestHandler: jwt.RequestHandler;
+
+    constructor(
+        @Logger(__filename) private log: LoggerInterface,
+        @OrmRepository() private userRepository: UserRepository
+    ) {
+        this.jwtRequestHandler = jwt({
+            secret: jwksRsa.expressJwtSecret({
+                cache: env.auth.cache,
+                rateLimit: env.auth.rateLimit,
+                jwksRequestsPerMinute: env.auth.jwksRequestsPerMinute,
+                jwksUri: env.auth.jwksUri,
+            }),
+            issuer: env.auth.issuer,
+            algorithms: env.auth.algorithms,
+        });
+    }
+
+    public jwtCheck(request: express.Request, response: express.Response): Promise<Error | undefined> {
+        return new Promise((resolve, reject) => this.jwtRequestHandler(request, response, resolve));
+    }
+
+    public simulateJwtCheckForTest(request: express.Request): boolean {
+        const getToken = (req: express.Request): string | undefined => {
+            const authorization = req.header('authorization');
+            if (authorization && authorization.split(' ')[0] === 'Bearer') {
+                return authorization.split(' ')[1];
+            }
+            return undefined;
+        };
+
+        const token = getToken(request);
+        if (token) {
+            request.user = new User();
+            request.user.sub = token;
+            return true;
+        }
+        return false;
+    }
+
+    ...
+
+}
+```
+
+Change the `authorizationChecker`
+
+```TypeScript
+import { Action } from 'routing-controllers';
+import { Container } from 'typedi';
+import { Connection } from 'typeorm';
+
 import { env } from '../env';
 import { Logger } from '../lib/logger';
+import { AuthService } from './AuthService';
 
 export function authorizationChecker(connection: Connection): (action: Action, roles: any[]) => Promise<boolean> | boolean {
     const log = new Logger(__filename);
-
-    const checkJwt = jwt({
-        secret: jwksRsa.expressJwtSecret({
-            cache: true,
-            rateLimit: true,
-            jwksRequestsPerMinute: 5,
-            jwksUri: 'https://qta.eu.auth0.com/.well-known/jwks.json',
-        }),
-        issuer: 'https://qta.eu.auth0.com/',
-        algorithms: ['RS256'],
-    });
+    const authService = Container.get<AuthService>(AuthService);
 
     return async function innerAuthorizationChecker(action: Action, roles: string[]): Promise<boolean> {
 
         if (env.isTest) {
-            const getToken = (req: express.Request): string | undefined => {
-                const authorization = req.header('authorization');
-                if (authorization && authorization.split(' ')[0] === 'Bearer') {
-                    return authorization.split(' ')[1];
-                }
-                return undefined;
-            };
-
-            const token = getToken(action.request);
-            action.request.user = new User();
-            action.request.user.sub = token;
-            return true;
+            return authService.simulateJwtCheckForTest(action.request);
         }
 
-        const check = () => {
-            return new Promise<Error | undefined>((resolve, reject) => {
-                checkJwt(action.request, action.response, resolve);
-            });
-        };
-
-        const error = await check();
-        if (error && error.message) {
-            log.warn(error.message);
+        const jwtError = await authService.jwtCheck(action.request, action.response);
+        if (jwtError && jwtError.message) {
+            log.warn(jwtError.message);
+            return false;
         }
-        return !error;
+        return true;
 
     };
 }
