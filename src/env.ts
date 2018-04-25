@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 
 import * as pkg from '../package.json';
-import { getOsEnv, normalizePort, toBool, toNumber } from './lib/env';
+import { getOsEnv, normalizePort, toArray, toBool, toNumber } from './lib/env';
 
 /**
  * Load .env file or for tests the .env.test file.
@@ -44,7 +44,12 @@ export const env = {
         output: getOsEnv('LOG_OUTPUT'),
     },
     auth: {
-        route: getOsEnv('AUTH_ROUTE'),
+        cache: toBool(getOsEnv('AUTH_JWT_CACHE')),
+        rateLimit: toBool(getOsEnv('AUTH_JWT_RATE_LIMIT')),
+        jwksRequestsPerMinute: toNumber(getOsEnv('AUTH_JWKS_REQUEST_PER_MINUTE')),
+        jwksUri: getOsEnv('AUTH_JWKS_URI'),
+        issuer: getOsEnv('AUTH_ISSUER'),
+        algorithms: toArray(getOsEnv('AUTH_ALGORITHMS')),
     },
     db: {
         type: getOsEnv('DB_TYPE'),
