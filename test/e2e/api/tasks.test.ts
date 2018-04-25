@@ -46,7 +46,7 @@ describe('/api/tasks', () => {
         const response = await request(settings.app)
             .post(`/api/tasks`)
             .send(newTask)
-            .set('Authorization', `Basic ${bruce.toBase64()}`)
+            .set('Authorization', `Bearer ${bruce.auth0}`)
             .expect('Content-Type', /json/)
             .expect(200);
 
@@ -64,7 +64,7 @@ describe('/api/tasks', () => {
         const response = await request(settings.app)
             .put(`/api/tasks/${bruce.tasks[0].id}`)
             .send(newTask)
-            .set('Authorization', `Basic ${bruce.toBase64()}`)
+            .set('Authorization', `Bearer ${bruce.auth0}`)
             .expect('Content-Type', /json/)
             .expect(200);
 
@@ -82,7 +82,7 @@ describe('/api/tasks', () => {
         await request(settings.app)
             .put(`/api/tasks/${task.id}`)
             .send(newTask)
-            .set('Authorization', `Basic ${bruce.toBase64()}`)
+            .set('Authorization', `Bearer ${bruce.auth0}`)
             .expect('Content-Type', /json/)
             .expect(403);
 

@@ -13,7 +13,7 @@ export class CreateBruce implements Seed {
         const bruce = new User();
         bruce.username = 'bruce';
         bruce.email = 'bruce.wayne@wayne-enterprises.com';
-        bruce.password = 'joker';
+        bruce.auth0 = 'auth0|bruce';
         const user = await em.save(bruce);
         user.tasks = await factory(Task)({ user }).seedMany(4);
         return user;

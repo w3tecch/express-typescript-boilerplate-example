@@ -38,7 +38,7 @@ describe('/api/users', () => {
     test('GET: / should return a list of users', async (done) => {
         const response = await request(settings.app)
             .get('/api/users')
-            .set('Authorization', `Basic ${bruce.toBase64()}`)
+            .set('Authorization', `Bearer ${bruce.auth0}`)
             .expect('Content-Type', /json/)
             .expect(200);
 
@@ -49,7 +49,7 @@ describe('/api/users', () => {
     test('GET: /:id should return bruce', async (done) => {
         const response = await request(settings.app)
             .get(`/api/users/${bruce.id}`)
-            .set('Authorization', `Basic ${bruce.toBase64()}`)
+            .set('Authorization', `Bearer ${bruce.auth0}`)
             .expect('Content-Type', /json/)
             .expect(200);
 
@@ -62,7 +62,7 @@ describe('/api/users', () => {
     test('GET: /me/tasks should return all tasks of bruce', async (done) => {
         const response = await request(settings.app)
             .get(`/api/users/me/tasks`)
-            .set('Authorization', `Basic ${bruce.toBase64()}`)
+            .set('Authorization', `Bearer ${bruce.auth0}`)
             .expect('Content-Type', /json/)
             .expect(200);
 

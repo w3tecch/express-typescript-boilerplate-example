@@ -20,17 +20,13 @@ export class User {
 
     @Exclude()
     @Column()
-    public password: string;
+    public auth0: string;
 
     @OneToMany(type => Task, task => task.user)
     public tasks: Task[];
 
     public toString(): string {
         return `${this.username} (${this.email})`;
-    }
-
-    public toBase64(): string {
-        return Buffer.from(`${this.username}:${this.password}`).toString('base64');
     }
 
 }

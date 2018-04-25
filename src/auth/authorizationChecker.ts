@@ -1,36 +1,55 @@
+import * as express from 'express';
+import * as jwt from 'express-jwt';
+import * as jwksRsa from 'jwks-rsa';
 import { Action } from 'routing-controllers';
-import { Container } from 'typedi';
 import { Connection } from 'typeorm';
 
+import { User } from '../api/models/User';
+import { env } from '../env';
 import { Logger } from '../lib/logger';
-import { AuthService } from './AuthService';
 
 export function authorizationChecker(connection: Connection): (action: Action, roles: any[]) => Promise<boolean> | boolean {
     const log = new Logger(__filename);
-    const authService = Container.get<AuthService>(AuthService);
+
+    const checkJwt = jwt({
+        secret: jwksRsa.expressJwtSecret({
+            cache: true,
+            rateLimit: true,
+            jwksRequestsPerMinute: 5,
+            jwksUri: 'https://qta.eu.auth0.com/.well-known/jwks.json',
+        }),
+        issuer: 'https://qta.eu.auth0.com/',
+        algorithms: ['RS256'],
+    });
 
     return async function innerAuthorizationChecker(action: Action, roles: string[]): Promise<boolean> {
-        // here you can use request/response objects from action
-        // also if decorator defines roles it needs to access the action
-        // you can use them to provide granular access check
-        // checker must return either boolean (true or false)
-        // either promise that resolves a boolean value
-        // demo code:
-        const credentials = authService.parseBasicAuthFromRequest(action.request);
 
-        if (!credentials) {
-            log.warn('No accessToken given');
-            return false;
-        }
+        if (env.isTest) {
+            const getToken = (req: express.Request): string | undefined => {
+                const authorization = req.header('authorization');
+                if (authorization && authorization.split(' ')[0] === 'Bearer') {
+                    return authorization.split(' ')[1];
+                }
+                return undefined;
+            };
 
-        // Request user info at auth0 with the provided accessToken
-        try {
-            action.request.user = await authService.validateUser(credentials.username, credentials.password);
-            log.info('Successfully checked token');
+            const token = getToken(action.request);
+            action.request.user = new User();
+            action.request.user.sub = token;
             return true;
-        } catch (e) {
-            log.warn(e);
-            return false;
         }
+
+        const check = () => {
+            return new Promise((resolve, reject) => {
+                checkJwt(action.request, action.response, resolve);
+            });
+        };
+
+        const result = await check();
+        if (result && (result as any).message) {
+            log.warn((result as any).message);
+        }
+        return !result;
+
     };
 }
