@@ -18,12 +18,12 @@
 
 - [Getting Started](#-getting-started)
 - [Requirements](#-requirements)
-- [001 - Create task table in the database](#-debugger-in-vscode)
-- [002 - Create seeds for the new entity task](#-debugger-in-vscode)
-- [003 - GET tasks of the current user](#-debugger-in-vscode)
-- [004 - Update tasks of current user](#-debugger-in-vscode)
-- [005 - Create tasks](#-debugger-in-vscode)
-- [006 - Auth0 integration](#-debugger-in-vscode)
+- [001 - Create task table in the database](#-001---create-task-table-in-the-database)
+- [002 - Create seeds for the new entity task](#-002---create-seeds-for-the-new-entity-task)
+- [003 - GET tasks of the current user](#-003---get-tasks-of-the-current-user)
+- [004 - Update tasks of current user](#-004---update-tasks-of-current-user)
+- [005 - Create tasks](#-005---create-tasks)
+- [006 - Auth0 integration](#-006---auth0-integration)
 
 ![divider](./w3tec-divider.png)
 
