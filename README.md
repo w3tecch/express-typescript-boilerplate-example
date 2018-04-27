@@ -92,10 +92,6 @@ npm start serve
 Run `typeorm migration:create -n CreateTaskTable` to create a new migration.
 
 ```TypeScript
-import { MigrationInterface, QueryRunner, Table } from 'typeorm';
-
-export class CreateTaskTable1524308957165 implements MigrationInterface {
-
     public async up(queryRunner: QueryRunner): Promise<any> {
         const table = new Table('task', [
             {
@@ -129,23 +125,17 @@ export class CreateTaskTable1524308957165 implements MigrationInterface {
     public async down(queryRunner: QueryRunner): Promise<any> {
         await queryRunner.dropTable('task');
     }
-
-}
 ```
 
 Run `typeorm migration:create -n AddUserRelationToTaskTable` to create a second migration for the relations between the user table and the task table.
 
 ```TypeScript
-import { MigrationInterface, QueryRunner, TableForeignKey } from 'typeorm';
-
-export class AddUserRelationToTaskTable1524382160144 implements MigrationInterface {
-
     private tableForeignKey = new TableForeignKey(
-        'fk_user_task',
-        ['user_id'],
-        ['id'],
-        'task',
-        ''
+        'fk_user_task', // name
+        ['user_id'], // columnNames
+        ['id'], // referencedColumnNames
+        'user', // referencedTable,
+        '' // referencedTablePath
     );
 
     public async up(queryRunner: QueryRunner): Promise<any> {
@@ -155,8 +145,6 @@ export class AddUserRelationToTaskTable1524382160144 implements MigrationInterfa
     public async down(queryRunner: QueryRunner): Promise<any> {
         await queryRunner.dropForeignKey('task', this.tableForeignKey);
     }
-
-}
 ```
 
 Run migration `yarn start db.migrate` to update the database schema.
@@ -244,19 +232,18 @@ import '../factories/UserFactory';
 
 export class CreateBruce implements Seed {
 
-    public async seed(factory: Factory, connection: Connection): Promise<User> {
-        const em = connection.createEntityManager();
-        const bruce = new User();
-        bruce.username = 'bruce';
-        bruce.email = 'bruce.wayne@wayne-enterprises.com';
-        bruce.password = 'joker';
-        const user = await em.save(bruce);
-        user.tasks = await factory(Task)({ user }).seedMany(4);
-        return user;
-    }
+  public async seed(factory: Factory, connection: Connection): Promise<User> {
+    const em = connection.createEntityManager();
+    const bruce = new User();
+    bruce.username = 'bruce';
+    bruce.email = 'bruce.wayne@wayne-enterprises.com';
+    bruce.password = 'joker';
+    const user = await em.save(bruce);
+    user.tasks = await factory(Task)({ user }).seedMany(4);
+    return user;
+  }
 
 }
-
 ```
 
 Update the seeds `CreateUsers.ts`
@@ -272,16 +259,15 @@ import '../factories/UserFactory';
 
 export class CreateUsers implements Seed {
 
-    public async seed(factory: Factory, connection: Connection): Promise<any> {
+  public async seed(factory: Factory, connection: Connection): Promise<any> {
+    const em = connection.createEntityManager();
+    await times(10, async (n) => {
+      const user = await factory(User)().seed();
+      const task = await factory(Task)({ user }).make();
+      return await em.save(task);
+    });
 
-        const em = connection.createEntityManager();
-        await times(10, async (n) => {
-            const user = await factory(User)().seed();
-            const task = await factory(Task)({ user }).make();
-            return await em.save(task);
-        });
-
-    }
+  }
 
 }
 ```
