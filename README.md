@@ -113,7 +113,6 @@ export class CreateTaskTable1524308957165 implements MigrationInterface {
             }, {
                 name: 'is_completed',
                 type: 'boolean',
-                default: false,
                 isPrimary: false,
                 isNullable: false,
             }, {
@@ -121,7 +120,7 @@ export class CreateTaskTable1524308957165 implements MigrationInterface {
                 type: 'varchar',
                 length: 255,
                 isPrimary: false,
-                isNullable: true,
+                isNullable: false,
             },
         ]);
         await queryRunner.createTable(table);
